@@ -45,10 +45,36 @@ function buildArray(size, fillMapper = (_, i) => i) {
 
 function outputResult(tag, fn, input) {
   const startTime = performance.now();
+  const initialMemoryUsage = process.memoryUsage();
   const result = fn(input);
+  const memoryDeltas = getmemoryUsageDelta(
+    initialMemoryUsage,
+    process.memoryUsage()
+  );
   console.log(
     `${tag}
     - Result: ${result}
-    - It took ${performance.now() - startTime}`
+    - It took: ${performance.now() - startTime}
+    - Memory usage:`
   );
+  console.log(printMemoryUsage(memoryDeltas));
+}
+
+function getmemoryUsageDelta(initialMemoryUsage = {}) {
+  const currentMemoryUsage = process.memoryUsage();
+  return Object.keys(currentMemoryUsage).reduce((acc, currentKey) => {
+    return {
+      ...acc,
+      [currentKey]:
+        currentMemoryUsage[currentKey] - initialMemoryUsage[currentKey] || 0
+    };
+  }, {});
+}
+
+function printMemoryUsage(memoryUsage) {
+  for (let key in memoryUsage) {
+    console.log(
+      `${key} ${Math.round((memoryUsage[key] / 1024 / 1024) * 100) / 100} MB`
+    );
+  }
 }
