@@ -1,25 +1,44 @@
 const { performance } = require('perf_hooks');
 const R = require('ramda');
 
-module.exports = function executeFunctionAndMeasurePerformance(
+module.exports = function executeFunctionAndMeasurePerformance({
   name,
   fn,
-  input
-) {
-  const startTime = performance.now();
-  const initialMemoryUsage = getmemoryUsageDelta();
-  const result = fn(input);
+  gc = true
+}) {
+  return function(input) {
+    runGc(gc);
+    const startTime = performance.now();
+    const initialMemoryUsage = getmemoryUsageDelta();
+    const result = fn(input);
 
-  return {
-    name,
-    result,
-    time_ms: formatMillis(performance.now() - startTime),
-    ...R.compose(
-      objMapper(numbToMb),
-      getmemoryUsageDelta
-    )(initialMemoryUsage)
+    return {
+      name,
+      result,
+      time_ms: formatMillis(performance.now() - startTime),
+      ...R.compose(
+        objMapper(numbToMb),
+        getmemoryUsageDelta
+      )(initialMemoryUsage)
+    };
   };
 };
+
+function runGc(enabled) {
+  if (enabled) {
+    try {
+      global.gc();
+    } catch (ex) {
+      console.error(
+        `
+Function runner configured to run garbage collector before each function.
+Enable gc by running your app with "--expose-gc":
+node --expose-gc index.js`
+      );
+      process.exit();
+    }
+  }
+}
 
 function numbToMb(value) {
   return `${Math.round((value / 1024 / 1024) * 100) / 100} MB`;

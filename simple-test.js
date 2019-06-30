@@ -1,14 +1,19 @@
 const R = require('ramda');
 
-const executeAndMeasure = require('./utils/execute-and-measure');
+const executeAndMeasureFactory = require('./utils/execute-and-measure');
+const classical = executeAndMeasureFactory({
+  name: 'classical',
+  fn: runClassical
+});
+const transduced = executeAndMeasureFactory({
+  name: 'transduced',
+  fn: runTransduced
+});
 
 for (let inputSize of buildArray(6, (_, i) => 10 ** (i + 2))) {
   const input = buildArray(inputSize);
   console.log(`With ${inputSize} records`);
-  console.table([
-    executeAndMeasure(`classical`, runClassical, input),
-    executeAndMeasure(`transduced`, runTransduced, input)
-  ]);
+  console.table([classical(input), transduced(input)]);
 }
 
 function runClassical(v) {
