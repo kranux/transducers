@@ -18,14 +18,18 @@ for (let inputSize of buildArray(6, (_, i) => 10 ** (i + 2))) {
 
 function runClassical(v) {
   return v
+    .map(x100)
     .map(addOne)
+    .map(divide33)
     .filter(isOdd)
     .reduce(sumReducer, 0);
 }
 
 function runTransduced(v) {
   const transducer = R.compose(
+    R.map(x100),
     R.map(addOne),
+    R.map(divide33),
     R.filter(isOdd)
   );
 
@@ -34,6 +38,14 @@ function runTransduced(v) {
 
 function addOne(v) {
   return v + 1;
+}
+
+function x100(v) {
+  return v * 100;
+}
+
+function divide33(v) {
+  return v / 33;
 }
 
 function isOdd(v) {
