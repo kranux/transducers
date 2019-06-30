@@ -54,15 +54,14 @@ function runAndGetPerformanceData(name, fn, input) {
     result,
     time_ms: formatMillis(performance.now() - startTime),
     ...R.compose(
-      tupplesToObject,
-      objMapper(tuppleToMb),
+      objMapper(numbToMb),
       getmemoryUsageDelta
     )(initialMemoryUsage)
   };
 }
 
-function tuppleToMb([key, value]) {
-  return [key, `${Math.round((value / 1024 / 1024) * 100) / 100} MB`];
+function numbToMb(value) {
+  return `${Math.round((value / 1024 / 1024) * 100) / 100} MB`;
 }
 
 function getmemoryUsageDelta(initialMemoryUsage = {}) {
@@ -78,14 +77,10 @@ function getmemoryUsageDelta(initialMemoryUsage = {}) {
 
 function objMapper(mapper) {
   return function(obj) {
-    return Object.keys(obj).map(key => mapper([key, obj[key]]));
+    return Object.keys(obj).reduce((acc, key) => {
+      return { ...acc, [key]: mapper(obj[key], key, obj) };
+    }, {});
   };
-}
-
-function tupplesToObject(tupples) {
-  return tupples.reduce((acc, [key, value]) => {
-    return { ...acc, [key]: value };
-  }, {});
 }
 
 function formatMillis(millis) {
