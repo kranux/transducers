@@ -16,6 +16,12 @@ for (let inputSize of buildArray(6, (_, i) => 10 ** (i + 2))) {
   console.table([classical(input), transduced(input)]);
 }
 
+for (let runTime of buildArray(10, (_, i) => i + 1)) {
+  const input = generateArray(runTime);
+  console.log(`Allow to run ${runTime} ms`);
+  console.table([transduced(input)]);
+}
+
 function runClassical(v) {
   return v
     .map(x100)
@@ -56,8 +62,21 @@ function sumReducer(acc, v) {
   return acc + v;
 }
 
+function countReducer(acc) {
+  return acc + 1;
+}
+
 function buildArray(size, fillMapper = (_, i) => i) {
   return Array(size)
     .fill(0, 0, size)
     .map(fillMapper);
+}
+
+function* generateArray(ms) {
+  const initialTime = Date.now();
+  let value = 0;
+
+  while (Date.now() - initialTime < ms) {
+    yield value++;
+  }
 }
