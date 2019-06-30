@@ -65,14 +65,12 @@ function numbToMb(value) {
 }
 
 function getmemoryUsageDelta(initialMemoryUsage = {}) {
-  const currentMemoryUsage = process.memoryUsage();
-  return Object.keys(currentMemoryUsage).reduce((acc, currentKey) => {
+  return objReducer((acc, value, key) => {
     return {
       ...acc,
-      [currentKey]:
-        currentMemoryUsage[currentKey] - (initialMemoryUsage[currentKey] || 0)
+      [key]: value - (initialMemoryUsage[key] || 0)
     };
-  }, {});
+  }, {})(process.memoryUsage());
 }
 
 function objMapper(mapper) {
@@ -80,6 +78,14 @@ function objMapper(mapper) {
     return Object.keys(obj).reduce((acc, key) => {
       return { ...acc, [key]: mapper(obj[key], key, obj) };
     }, {});
+  };
+}
+
+function objReducer(reducer, initialValue) {
+  return function(obj) {
+    return Object.keys(obj).reduce((acc, key) => {
+      return reducer(acc, obj[key], key);
+    }, initialValue);
   };
 }
 
