@@ -1,11 +1,13 @@
 const { performance } = require('perf_hooks');
 const R = require('ramda');
 
-const inputSize = 1000;
-
-const input = buildInput();
-outputResult('classical', runClassical, input);
-outputResult('transduced', runTransduced, input);
+for (let inputSize of buildArray(6, (_, i) => 10 ** (i + 2))) {
+  const input = buildArray(inputSize);
+  console.log(`## ${inputSize}`);
+  outputResult(`### classical`, runClassical, input);
+  outputResult(`### transduced`, runTransduced, input);
+  console.log('');
+}
 
 function runClassical(v) {
   return v
@@ -35,18 +37,18 @@ function sumReducer(acc, v) {
   return acc + v;
 }
 
-function buildInput() {
-  return Array(inputSize)
-    .fill(0, 0, inputSize)
-    .map((_, i) => i);
+function buildArray(size, fillMapper = (_, i) => i) {
+  return Array(size)
+    .fill(0, 0, size)
+    .map(fillMapper);
 }
 
 function outputResult(tag, fn, input) {
   const startTime = performance.now();
   const result = fn(input);
   console.log(
-    `tag: ${tag}
-    Result: ${result}
-    it took ${performance.now() - startTime}`
+    `${tag}
+    - Result: ${result}
+    - It took ${performance.now() - startTime}`
   );
 }
