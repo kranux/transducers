@@ -3,10 +3,11 @@ const R = require('ramda');
 
 for (let inputSize of buildArray(6, (_, i) => 10 ** (i + 2))) {
   const input = buildArray(inputSize);
-  console.log(`## ${inputSize}`);
-  outputResult(`### classical`, runClassical, input);
-  outputResult(`### transduced`, runTransduced, input);
-  console.log('');
+  console.log(`With ${inputSize} records`);
+  console.table([
+    runAndGetPerformanceData(`classical`, runClassical, input),
+    runAndGetPerformanceData(`transduced`, runTransduced, input)
+  ]);
 }
 
 function runClassical(v) {
@@ -43,21 +44,25 @@ function buildArray(size, fillMapper = (_, i) => i) {
     .map(fillMapper);
 }
 
-function outputResult(tag, fn, input) {
+function runAndGetPerformanceData(name, fn, input) {
   const startTime = performance.now();
-  const initialMemoryUsage = process.memoryUsage();
+  const initialMemoryUsage = getmemoryUsageDelta();
   const result = fn(input);
-  const memoryDeltas = getmemoryUsageDelta(
-    initialMemoryUsage,
-    process.memoryUsage()
-  );
-  console.log(
-    `${tag}
-    - Result: ${result}
-    - It took: ${performance.now() - startTime}
-    - Memory usage:`
-  );
-  console.log(printMemoryUsage(memoryDeltas));
+
+  return {
+    name,
+    result,
+    time_ms: formatMillis(performance.now() - startTime),
+    ...tupplesToObject(
+      objMapper(
+        ([key, value]) => [
+          key,
+          `${Math.round((value / 1024 / 1024) * 100) / 100} MB`
+        ],
+        getmemoryUsageDelta(initialMemoryUsage)
+      )
+    )
+  };
 }
 
 function getmemoryUsageDelta(initialMemoryUsage = {}) {
@@ -66,15 +71,21 @@ function getmemoryUsageDelta(initialMemoryUsage = {}) {
     return {
       ...acc,
       [currentKey]:
-        currentMemoryUsage[currentKey] - initialMemoryUsage[currentKey] || 0
+        currentMemoryUsage[currentKey] - (initialMemoryUsage[currentKey] || 0)
     };
   }, {});
 }
 
-function printMemoryUsage(memoryUsage) {
-  for (let key in memoryUsage) {
-    console.log(
-      `${key} ${Math.round((memoryUsage[key] / 1024 / 1024) * 100) / 100} MB`
-    );
-  }
+function objMapper(mapper, obj) {
+  return Object.keys(obj).map(key => mapper([key, obj[key]]));
+}
+
+function tupplesToObject(tupples) {
+  return tupples.reduce((acc, [key, value]) => {
+    return { ...acc, [key]: value };
+  }, {});
+}
+
+function formatMillis(millis) {
+  return `${millis.toFixed(1)}`;
 }
