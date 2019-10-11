@@ -2,6 +2,10 @@
 
 Playing with transducers.
 
+```
+node --expose-gc ./simple-test.js
+```
+
 ## Few reads
 
 - https://frontendmasters.com/courses/functional-javascript-v3/transduction/
